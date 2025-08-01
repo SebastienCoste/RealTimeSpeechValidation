@@ -279,6 +279,12 @@ function TruthSeeker() {
                 Demo Mode - Add Perplexity API Key
               </div>
             )}
+            <a
+              href="/youtube-live"
+              className="px-3 py-1 bg-red-600/20 hover:bg-red-600/30 text-red-300 rounded-lg text-sm transition-colors border border-red-500/30"
+            >
+              YouTube Live
+            </a>
             <button
               onClick={clearAll}
               className="px-4 py-2 bg-slate-700/50 hover:bg-slate-600/50 rounded-lg text-sm transition-colors border border-slate-600/30"
