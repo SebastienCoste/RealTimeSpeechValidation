@@ -407,7 +407,7 @@ class TruthSeekerAPITester:
             ws_session_id = str(uuid.uuid4())
             ws_url = f"{self.ws_url}/ws/{ws_session_id}"
             
-            async with websockets.connect(ws_url, timeout=10) as websocket:
+            async with websockets.connect(ws_url) as websocket:
                 # Test connection
                 self.log_test(
                     "WebSocket Connection", 
