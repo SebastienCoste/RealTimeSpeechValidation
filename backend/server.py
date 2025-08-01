@@ -14,6 +14,7 @@ import uuid
 from datetime import datetime
 import httpx
 from openai import AsyncOpenAI
+from youtube_processor import YouTubeProcessor
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
