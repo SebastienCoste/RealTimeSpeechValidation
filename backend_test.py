@@ -861,7 +861,7 @@ class TruthSeekerAPITester:
         print(f"Test Session ID: {self.session_id}")
         print("=" * 60)
         
-        # Run tests in logical order
+        # Run original TruthSeeker tests
         await self.test_health_check()
         await self.test_basic_fact_check()
         await self.test_transcription_processing()
@@ -869,6 +869,17 @@ class TruthSeekerAPITester:
         await self.test_error_handling()
         await self.test_websocket_endpoint()
         await self.test_cors_configuration()
+        
+        print("\n" + "=" * 60)
+        print("🎥 Starting YouTube Live Fact-Checking Tests")
+        print("=" * 60)
+        
+        # Run YouTube Live tests
+        await self.test_youtube_set_video()
+        await self.test_youtube_session_management()
+        await self.test_youtube_fact_checks_retrieval()
+        await self.test_youtube_error_handling()
+        await self.test_youtube_websocket_endpoint()
         
         # Summary
         print("=" * 60)
