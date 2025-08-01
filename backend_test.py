@@ -26,6 +26,7 @@ class TruthSeekerAPITester:
         self.ws_url = BACKEND_URL.replace('http', 'ws').replace('https', 'wss')
         self.test_results = []
         self.session_id = str(uuid.uuid4())
+        self.youtube_video_id = None  # Will be set during YouTube tests
         
     def log_test(self, test_name: str, success: bool, details: str = "", response_data: Any = None):
         """Log test results"""
