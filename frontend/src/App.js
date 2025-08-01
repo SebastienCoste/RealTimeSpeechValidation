@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import YouTubeLive from './YouTubeLive';
+import AdminPanel from './AdminPanel';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API_URL = `${BACKEND_URL}/api`;
