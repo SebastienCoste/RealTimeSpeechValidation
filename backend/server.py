@@ -232,6 +232,14 @@ Be precise, objective, and transparent about limitations in available informatio
 # Global fact checker instance
 fact_checker = PerplexityFactChecker()
 
+# Global YouTube processor
+youtube_processor = None
+
+async def initialize_youtube_processor():
+    """Initialize YouTube processor after database connection"""
+    global youtube_processor
+    youtube_processor = YouTubeProcessor(db, fact_checker)
+
 # WebSocket connection manager
 class ConnectionManager:
     def __init__(self):
