@@ -437,7 +437,13 @@ function TruthSeeker() {
 function App() {
   return (
     <div className="App">
-      <TruthSeeker />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<TruthSeeker />} />
+          <Route path="/youtube-live" element={<YouTubeLive />} />
+          <Route path="/admin" element={<AdminPanel />} />
+        </Routes>
+      </BrowserRouter>
     </div>
   );
 }
