@@ -328,6 +328,11 @@ async def get_session_fact_checks(session_id: str):
             {"session_id": session_id}
         ).sort("timestamp", -1).to_list(100)
         
+        # Convert ObjectId to string for JSON serialization
+        for fact_check in fact_checks:
+            if "_id" in fact_check:
+                fact_check["_id"] = str(fact_check["_id"])
+        
         return {
             "session_id": session_id,
             "fact_checks": fact_checks
