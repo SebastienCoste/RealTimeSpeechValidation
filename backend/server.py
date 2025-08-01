@@ -483,6 +483,41 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
         logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket, session_id)
 
+# YouTube Live WebSocket endpoint
+@app.websocket("/ws/youtube-live")
+async def youtube_websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            
+            if message["type"] == "get_current_session":
+                if not youtube_processor:
+                    await initialize_youtube_processor()
+                
+                # Send current session data
+                session = await youtube_processor.get_current_session()
+                if session:
+                    fact_checks = await youtube_processor.get_session_fact_checks(session["video_id"])
+                    await websocket.send_text(json.dumps({
+                        "type": "current_session",
+                        "data": {
+                            **session,
+                            "fact_checks": fact_checks
+                        }
+                    }))
+                else:
+                    await websocket.send_text(json.dumps({
+                        "type": "current_session",
+                        "data": None
+                    }))
+                    
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        logger.error(f"YouTube WebSocket error: {e}")
+
 # Include the router in the main app
 app.include_router(api_router)
 
