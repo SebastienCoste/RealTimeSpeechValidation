@@ -216,6 +216,78 @@ backend:
         agent: "testing"
         comment: "Mock fact-checking system working correctly when no Perplexity API key is configured. Provides intelligent mock responses based on statement content with appropriate verdicts, confidence scores, and explanations."
 
+  - task: "YouTube Video Management Endpoints"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "YouTube video management endpoints working correctly. POST /api/youtube/set-video successfully sets videos with proper video info extraction using yt-dlp (tested with Rick Astley video). Handles invalid URLs gracefully by returning success=false. POST /api/youtube/start-processing and POST /api/youtube/stop-processing work correctly for session management."
+
+  - task: "YouTube Session Management"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "YouTube session management working correctly. GET /api/youtube/current-session returns proper session data with fact_checks array. Sessions are properly stored in MongoDB and can be retrieved. Database integration working for YouTube sessions."
+
+  - task: "YouTube Fact-Check Data Retrieval"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "YouTube fact-check data retrieval working correctly. GET /api/youtube/sessions/{video_id}/fact-checks returns proper JSON with video_id and fact_checks array. Handles non-existent video IDs gracefully by returning empty arrays."
+
+  - task: "YouTube Error Handling"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "YouTube error handling working correctly. Empty URLs handled gracefully with success=false response. Processing without video set handled appropriately. All error scenarios return proper responses without crashes."
+
+  - task: "YouTube WebSocket Endpoint"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "YouTube WebSocket endpoint /ws/youtube-live exists in code but fails to connect in production environment. Same infrastructure issue as regular WebSocket - connection times out during handshake. This is a routing/infrastructure issue, not a code issue."
+
+  - task: "YouTube Processor Integration"
+    implemented: true
+    working: true
+    file: "backend/youtube_processor.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "YouTube processor integration working correctly. yt-dlp video info extraction works properly. Mock transcription system provides realistic test data. Database integration for storing sessions, transcript segments, and fact-checks working correctly. Fact-checker integration functional."
+
 frontend:
   - task: "Frontend Testing"
     implemented: "NA"
