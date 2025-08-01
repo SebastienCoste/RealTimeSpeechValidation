@@ -55,6 +55,10 @@ class TranscriptionUpdate(BaseModel):
     session_id: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
+class YouTubeVideoRequest(BaseModel):
+    video_url: str
+    admin_user: str = "admin"
+
 # Perplexity Fact Checker
 class PerplexityFactChecker:
     def __init__(self, api_key: str = None):
