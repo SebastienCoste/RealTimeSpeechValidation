@@ -354,6 +354,89 @@ async def get_session_fact_checks(session_id: str):
         logger.error(f"Error retrieving fact checks: {e}")
         raise HTTPException(status_code=500, detail="Error retrieving fact checks")
 
+# YouTube Live Fact-Checking Endpoints
+@api_router.post("/youtube/set-video")
+async def set_youtube_video(request: YouTubeVideoRequest):
+    """Set YouTube video for live fact-checking"""
+    if not youtube_processor:
+        await initialize_youtube_processor()
+    
+    try:
+        result = await youtube_processor.set_video(request.video_url, request.admin_user)
+        return result
+    except Exception as e:
+        logger.error(f"Error setting YouTube video: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to set video: {str(e)}")
+
+@api_router.post("/youtube/start-processing")
+async def start_youtube_processing():
+    """Start processing current YouTube video"""
+    if not youtube_processor:
+        await initialize_youtube_processor()
+    
+    try:
+        # Start processing in background
+        asyncio.create_task(youtube_processor.start_processing())
+        return {"success": True, "message": "Processing started"}
+    except Exception as e:
+        logger.error(f"Error starting YouTube processing: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to start processing: {str(e)}")
+
+@api_router.post("/youtube/stop-processing")
+async def stop_youtube_processing():
+    """Stop processing current YouTube video"""
+    if not youtube_processor:
+        return {"success": False, "error": "No processor available"}
+    
+    try:
+        await youtube_processor.stop_processing()
+        return {"success": True, "message": "Processing stopped"}
+    except Exception as e:
+        logger.error(f"Error stopping YouTube processing: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to stop processing: {str(e)}")
+
+@api_router.get("/youtube/current-session")
+async def get_current_youtube_session():
+    """Get current YouTube session and fact-checks"""
+    if not youtube_processor:
+        await initialize_youtube_processor()
+    
+    try:
+        session = await youtube_processor.get_current_session()
+        
+        if session:
+            # Get fact-checks for this session
+            fact_checks = await youtube_processor.get_session_fact_checks(session["video_id"])
+            
+            return {
+                "session": session,
+                "fact_checks": fact_checks
+            }
+        else:
+            return {
+                "session": None,
+                "fact_checks": []
+            }
+    except Exception as e:
+        logger.error(f"Error getting current YouTube session: {e}")
+        raise HTTPException(status_code=500, detail="Error retrieving session")
+
+@api_router.get("/youtube/sessions/{video_id}/fact-checks")
+async def get_youtube_session_fact_checks(video_id: str):
+    """Get all fact-checks for a YouTube video session"""
+    if not youtube_processor:
+        await initialize_youtube_processor()
+    
+    try:
+        fact_checks = await youtube_processor.get_session_fact_checks(video_id)
+        return {
+            "video_id": video_id,
+            "fact_checks": fact_checks
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving YouTube fact checks: {e}")
+        raise HTTPException(status_code=500, detail="Error retrieving fact checks")
+
 # WebSocket endpoint
 @app.websocket("/ws/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, session_id: str):
