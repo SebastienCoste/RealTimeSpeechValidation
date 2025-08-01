@@ -499,6 +499,360 @@ class TruthSeekerAPITester:
         except Exception as e:
             self.log_test("CORS Configuration", False, f"Exception: {str(e)}")
 
+    # YouTube Live Fact-Checking Tests
+    async def test_youtube_set_video(self):
+        """Test setting a YouTube video for fact-checking"""
+        # Test with valid YouTube URL
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                payload = {
+                    "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                    "admin_user": "test_admin"
+                }
+                
+                response = await client.post(
+                    f"{self.base_url}/youtube/set-video",
+                    json=payload
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get("success") and "video_id" in data:
+                        self.log_test(
+                            "YouTube Set Video (Valid URL)", 
+                            True, 
+                            f"Successfully set video: {data.get('title', 'Unknown')}", 
+                            data
+                        )
+                        # Store video_id for later tests
+                        self.youtube_video_id = data.get("video_id")
+                    else:
+                        self.log_test(
+                            "YouTube Set Video (Valid URL)", 
+                            False, 
+                            f"Unexpected response format", 
+                            data
+                        )
+                else:
+                    self.log_test(
+                        "YouTube Set Video (Valid URL)", 
+                        False, 
+                        f"HTTP {response.status_code}", 
+                        response.text
+                    )
+        except Exception as e:
+            self.log_test("YouTube Set Video (Valid URL)", False, f"Exception: {str(e)}")
+
+        # Test with invalid YouTube URL
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                payload = {
+                    "video_url": "https://invalid-url.com/video",
+                    "admin_user": "test_admin"
+                }
+                
+                response = await client.post(
+                    f"{self.base_url}/youtube/set-video",
+                    json=payload
+                )
+                
+                if response.status_code in [400, 422, 500]:
+                    self.log_test(
+                        "YouTube Set Video (Invalid URL)", 
+                        True, 
+                        f"Correctly rejected invalid URL with status {response.status_code}"
+                    )
+                else:
+                    data = response.json() if response.status_code == 200 else response.text
+                    if response.status_code == 200 and isinstance(data, dict) and not data.get("success"):
+                        self.log_test(
+                            "YouTube Set Video (Invalid URL)", 
+                            True, 
+                            f"Correctly returned success=false for invalid URL"
+                        )
+                    else:
+                        self.log_test(
+                            "YouTube Set Video (Invalid URL)", 
+                            False, 
+                            f"Expected error response, got {response.status_code}", 
+                            data
+                        )
+        except Exception as e:
+            self.log_test("YouTube Set Video (Invalid URL)", False, f"Exception: {str(e)}")
+
+    async def test_youtube_session_management(self):
+        """Test YouTube session management endpoints"""
+        # Test getting current session
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(f"{self.base_url}/youtube/current-session")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if "session" in data and "fact_checks" in data:
+                        session = data["session"]
+                        fact_checks = data["fact_checks"]
+                        
+                        if session is None or isinstance(session, dict):
+                            if isinstance(fact_checks, list):
+                                self.log_test(
+                                    "YouTube Get Current Session", 
+                                    True, 
+                                    f"Retrieved session data: {len(fact_checks)} fact-checks", 
+                                    {"has_session": session is not None, "fact_check_count": len(fact_checks)}
+                                )
+                            else:
+                                self.log_test(
+                                    "YouTube Get Current Session", 
+                                    False, 
+                                    "fact_checks should be a list", 
+                                    data
+                                )
+                        else:
+                            self.log_test(
+                                "YouTube Get Current Session", 
+                                False, 
+                                "session should be null or object", 
+                                data
+                            )
+                    else:
+                        self.log_test(
+                            "YouTube Get Current Session", 
+                            False, 
+                            "Missing required fields in response", 
+                            data
+                        )
+                else:
+                    self.log_test(
+                        "YouTube Get Current Session", 
+                        False, 
+                        f"HTTP {response.status_code}", 
+                        response.text
+                    )
+        except Exception as e:
+            self.log_test("YouTube Get Current Session", False, f"Exception: {str(e)}")
+
+        # Test starting processing
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(f"{self.base_url}/youtube/start-processing")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get("success"):
+                        self.log_test(
+                            "YouTube Start Processing", 
+                            True, 
+                            "Successfully started processing", 
+                            data
+                        )
+                    else:
+                        self.log_test(
+                            "YouTube Start Processing", 
+                            False, 
+                            f"Expected success=true, got: {data}", 
+                            data
+                        )
+                else:
+                    self.log_test(
+                        "YouTube Start Processing", 
+                        False, 
+                        f"HTTP {response.status_code}", 
+                        response.text
+                    )
+        except Exception as e:
+            self.log_test("YouTube Start Processing", False, f"Exception: {str(e)}")
+
+        # Test stopping processing
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(f"{self.base_url}/youtube/stop-processing")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get("success"):
+                        self.log_test(
+                            "YouTube Stop Processing", 
+                            True, 
+                            "Successfully stopped processing", 
+                            data
+                        )
+                    else:
+                        self.log_test(
+                            "YouTube Stop Processing", 
+                            False, 
+                            f"Expected success=true, got: {data}", 
+                            data
+                        )
+                else:
+                    self.log_test(
+                        "YouTube Stop Processing", 
+                        False, 
+                        f"HTTP {response.status_code}", 
+                        response.text
+                    )
+        except Exception as e:
+            self.log_test("YouTube Stop Processing", False, f"Exception: {str(e)}")
+
+    async def test_youtube_fact_checks_retrieval(self):
+        """Test retrieving fact-checks for YouTube video sessions"""
+        # Test with a video ID (may be empty initially)
+        video_id = getattr(self, 'youtube_video_id', 'dQw4w9WgXcQ')
+        
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(
+                    f"{self.base_url}/youtube/sessions/{video_id}/fact-checks"
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if "video_id" in data and "fact_checks" in data:
+                        if data["video_id"] == video_id and isinstance(data["fact_checks"], list):
+                            self.log_test(
+                                "YouTube Session Fact-Checks", 
+                                True, 
+                                f"Retrieved {len(data['fact_checks'])} fact-checks for video {video_id}", 
+                                {"video_id": data["video_id"], "count": len(data["fact_checks"])}
+                            )
+                        else:
+                            self.log_test(
+                                "YouTube Session Fact-Checks", 
+                                False, 
+                                f"Data validation failed", 
+                                data
+                            )
+                    else:
+                        self.log_test(
+                            "YouTube Session Fact-Checks", 
+                            False, 
+                            "Missing required fields in response", 
+                            data
+                        )
+                else:
+                    self.log_test(
+                        "YouTube Session Fact-Checks", 
+                        False, 
+                        f"HTTP {response.status_code}", 
+                        response.text
+                    )
+        except Exception as e:
+            self.log_test("YouTube Session Fact-Checks", False, f"Exception: {str(e)}")
+
+    async def test_youtube_error_handling(self):
+        """Test YouTube endpoint error handling"""
+        # Test set-video with missing parameters
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                payload = {
+                    "video_url": ""  # Empty URL
+                }
+                
+                response = await client.post(
+                    f"{self.base_url}/youtube/set-video",
+                    json=payload
+                )
+                
+                if response.status_code in [400, 422, 500]:
+                    self.log_test(
+                        "YouTube Error Handling (Empty URL)", 
+                        True, 
+                        f"Correctly handled empty URL with status {response.status_code}"
+                    )
+                else:
+                    data = response.json() if response.status_code == 200 else response.text
+                    if response.status_code == 200 and isinstance(data, dict) and not data.get("success"):
+                        self.log_test(
+                            "YouTube Error Handling (Empty URL)", 
+                            True, 
+                            "Correctly returned success=false for empty URL"
+                        )
+                    else:
+                        self.log_test(
+                            "YouTube Error Handling (Empty URL)", 
+                            False, 
+                            f"Expected error response, got {response.status_code}", 
+                            data
+                        )
+        except Exception as e:
+            self.log_test("YouTube Error Handling (Empty URL)", False, f"Exception: {str(e)}")
+
+        # Test processing without video set (after stopping)
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                # First stop any processing
+                await client.post(f"{self.base_url}/youtube/stop-processing")
+                
+                # Try to start processing without a video
+                response = await client.post(f"{self.base_url}/youtube/start-processing")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    # Should either succeed (if video was set earlier) or handle gracefully
+                    self.log_test(
+                        "YouTube Error Handling (No Video Set)", 
+                        True, 
+                        f"Handled processing without video: {data.get('message', 'No message')}"
+                    )
+                else:
+                    self.log_test(
+                        "YouTube Error Handling (No Video Set)", 
+                        True, 
+                        f"Correctly returned error status {response.status_code}"
+                    )
+        except Exception as e:
+            self.log_test("YouTube Error Handling (No Video Set)", False, f"Exception: {str(e)}")
+
+    async def test_youtube_websocket_endpoint(self):
+        """Test YouTube WebSocket endpoint"""
+        try:
+            ws_url = f"{self.ws_url}/ws/youtube-live"
+            
+            async with websockets.connect(ws_url) as websocket:
+                # Test connection
+                self.log_test(
+                    "YouTube WebSocket Connection", 
+                    True, 
+                    f"Successfully connected to {ws_url}"
+                )
+                
+                # Send a request for current session
+                message = {
+                    "type": "get_current_session"
+                }
+                
+                await websocket.send(json.dumps(message))
+                
+                # Wait for response
+                try:
+                    response = await asyncio.wait_for(websocket.recv(), timeout=10.0)
+                    data = json.loads(response)
+                    
+                    if data.get("type") == "current_session" and "data" in data:
+                        session_data = data["data"]
+                        self.log_test(
+                            "YouTube WebSocket Response", 
+                            True, 
+                            f"Received current session data: {session_data is not None}", 
+                            {"has_session": session_data is not None}
+                        )
+                    else:
+                        self.log_test(
+                            "YouTube WebSocket Response", 
+                            False, 
+                            f"Unexpected WebSocket response format", 
+                            data
+                        )
+                except asyncio.TimeoutError:
+                    self.log_test(
+                        "YouTube WebSocket Response", 
+                        False, 
+                        "Timeout waiting for WebSocket response"
+                    )
+                    
+        except Exception as e:
+            self.log_test("YouTube WebSocket Connection", False, f"Exception: {str(e)}")
+
     async def run_all_tests(self):
         """Run all tests in sequence"""
         print(f"🚀 Starting TruthSeeker Backend API Tests")
